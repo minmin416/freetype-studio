@@ -382,7 +382,11 @@
       ><button class="action" id="copySvg">SVG 복사</button
       ><span class="separator"></span
       ><button class="action" id="savePng">PNG 저장</button
-      ><button class="action" id="saveSvg">SVG 저장</button>
+      ><button class="action" id="saveSvg">SVG 저장</button
+      ><select id="language" aria-label="Language">
+        <option value="en">English</option>
+        <option value="ko">한국어</option>
+      </select>
     </div>
   </header>
   <main class="workspace">
@@ -561,6 +565,154 @@
   </main>
   <script>
     const $ = (id) => document.getElementById(id);
+    const english = {
+      "비트맵 글씨 입력기": "Bitmap text editor",
+      "PNG 복사": "Copy PNG",
+      "SVG 복사": "Copy SVG",
+      "PNG 저장": "Save PNG",
+      "SVG 저장": "Save SVG",
+      서체: "Font",
+      크기: "Size",
+      자간: "Tracking",
+      "글자 너비": "Width",
+      "줄 간격": "Line gap",
+      글자색: "Text color",
+      "글자 설정": "Text settings",
+      "글자 크기": "Font size",
+      "크기 줄이기": "Decrease size",
+      "크기 늘리기": "Increase size",
+      "자간 줄이기": "Decrease tracking",
+      "자간 늘리기": "Increase tracking",
+      "너비 줄이기": "Decrease width",
+      "너비 늘리기": "Increase width",
+      "줄 간격 추가": "Extra line gap",
+      "내용 입력": "Enter text",
+      "여기에 글자를 입력하세요.": "Type your text here.",
+      "입력하면 아래에 바로 반영됩니다.":
+        "Changes appear in the preview below.",
+      "출력 미리보기": "Output preview",
+      "화면 확대": "Preview zoom",
+      "입력한 글씨의 실제 출력 미리보기": "Actual rendered output",
+      "글꼴을 불러오는 중…": "Loading fonts…",
+      "추가 설정 · 글꼴 파일 열기": "More settings · Open a font file",
+      렌더링: "Rendering",
+      "내장 비트맵 원본": "Embedded bitmap",
+      "내장 비트맵 너비 변형": "Embedded bitmap, width adjusted",
+      "외곽선 → 흑백 픽셀": "Outline → monochrome pixels",
+      "외곽선 흑백 렌더링": "Monochrome outline rendering",
+      "출력 배율": "Export scale",
+      "1× 원본": "1× Original",
+      여백: "Padding",
+      배경: "Background",
+      투명: "Transparent",
+      흰색: "White",
+      "＋ 글꼴 파일 열기": "＋ Open a font file",
+      너비: "Width",
+      출력: "Output",
+      " · 비트맵 있음": " · bitmap available",
+      "글꼴을 추가했습니다.": "Font added.",
+      "글꼴을 찾지 못했습니다. 추가 설정에서 글꼴 파일을 열어주세요.":
+        "No fonts found. Open a font file under More settings.",
+      "이 서체에는 내장 비트맵이 없습니다. 다른 서체를 선택하거나 외곽선 모드로 전환하세요.":
+        "This font has no embedded bitmaps. Choose another font or switch to outline mode.",
+      "내장 비트맵은 글꼴에 들어 있는 크기만 지원합니다. 글자 너비 100%가 원본이며, 다른 값은 픽셀을 가로로 늘리거나 줄입니다. 화면 확대는 저장 크기에 영향을 주지 않습니다. SVG는 픽셀을 도형으로 저장하며, 붙여넣는 앱에 따라 이미지 또는 코드로 붙습니다.":
+        "Embedded bitmap mode only offers sizes stored in the font. Width 100% preserves the original; other values stretch or compress the pixels horizontally. Preview zoom does not change export size. SVG stores pixels as vector shapes; paste behavior depends on the receiving app.",
+      "PNG 이미지를 복사했습니다. ⌘V로 붙여넣으세요.":
+        "PNG image copied. Paste with ⌘V.",
+      "SVG를 복사하는 중…": "Copying SVG…",
+      "SVG를 복사했습니다. ⌘V로 붙여넣으세요.": "SVG copied. Paste with ⌘V.",
+      "글자 너비는 25~300%로 설정하세요.": "Set width between 25% and 300%.",
+      "설정 범위를 확인하세요.":
+        "One or more settings are outside the supported range.",
+      "이 크기에는 내장 비트맵이 없습니다. 표시된 크기를 선택하세요.":
+        "No embedded bitmap exists at this size. Choose an available size.",
+      "이미지가 너무 큽니다. 글자 수나 배율을 줄이세요.":
+        "The image is too large. Reduce text length or export scale.",
+      "색상을 확인하세요.": "Choose a valid color.",
+      "읽을 수 있는 글꼴 파일이 아닙니다.":
+        "This file could not be read as a font.",
+      "찾을 수 없습니다.": "Not found.",
+    };
+    let language = navigator.language.toLowerCase().startsWith("ko")
+      ? "ko"
+      : "en";
+    try {
+      const choice = localStorage.getItem("freetype-language");
+      if (["en", "ko"].includes(choice)) language = choice;
+    } catch (e) {}
+    const t = (text) => (language === "en" ? english[text] || text : text);
+    function translateMessage(text) {
+      if (language !== "en") return text;
+      if (english[text]) return english[text];
+      return text
+        .replace(
+          "내장 비트맵/글자가 없는 문자: ",
+          "Missing embedded bitmap or glyph: ",
+        )
+        .replace(
+          " · 다른 글꼴이나 크기를 선택하세요.",
+          " · Choose another font or size.",
+        )
+        .replace("SVG 복사 실패: ", "SVG copy failed: ")
+        .replace("PNG 복사 실패: ", "PNG copy failed: ")
+        .replace(" 파일을 저장했습니다.", " file saved.");
+    }
+    const staticText = [];
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+    );
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (
+        node.parentElement.closest(
+          "script, style, textarea, #status, #toast, #count, #font",
+        )
+      )
+        continue;
+      const source = node.nodeValue.trim().replace(/\s+/g, " ");
+      if (english[source]) staticText.push([node, node.nodeValue, source]);
+    }
+    const staticAttributes = [];
+    document
+      .querySelectorAll("[aria-label], [title], [placeholder], [alt]")
+      .forEach((el) => {
+        for (const attr of ["aria-label", "title", "placeholder", "alt"]) {
+          const source = el.getAttribute(attr);
+          if (source && english[source])
+            staticAttributes.push([el, attr, source]);
+        }
+      });
+    function applyLanguage() {
+      document.documentElement.lang = language;
+      $("language").value = language;
+      for (const [node, original, source] of staticText)
+        node.nodeValue =
+          language === "ko"
+            ? original
+            : original.replace(original.trim(), t(source));
+      for (const [el, attr, source] of staticAttributes)
+        el.setAttribute(attr, t(source));
+      [...$("font").options].forEach((option) => {
+        const f = fonts.find((f) => String(f.id) === option.value);
+        if (f)
+          option.textContent =
+            f.name + (f.sizes.length ? t(" · 비트맵 있음") : "");
+      });
+      updateCount();
+      if (fonts.length) {
+        $("toast").textContent = "";
+        schedule();
+      } else $("status").textContent = t("글꼴을 불러오는 중…");
+    }
+    $("language").onchange = () => {
+      language = $("language").value;
+      try {
+        localStorage.setItem("freetype-language", language);
+      } catch (e) {}
+      applyLanguage();
+    };
+
     let fonts = [],
       result = null,
       revision = 0,
@@ -637,9 +789,11 @@
         result = null;
         disabled(true);
         $("status").className = "error";
-        $("status").textContent = f
-          ? "이 서체에는 내장 비트맵이 없습니다. 다른 서체를 선택하거나 외곽선 모드로 전환하세요."
-          : "글꼴을 찾지 못했습니다. 추가 설정에서 글꼴 파일을 열어주세요.";
+        $("status").textContent = translateMessage(
+          f
+            ? "이 서체에는 내장 비트맵이 없습니다. 다른 서체를 선택하거나 외곽선 모드로 전환하세요."
+            : "글꼴을 찾지 못했습니다. 추가 설정에서 글꼴 파일을 열어주세요.",
+        );
         return false;
       }
       return true;
@@ -662,13 +816,13 @@
         zoom();
         $("status").className = "";
         $("status").textContent =
-          `${d.font} · ${d.size}px · ${d.bitmap ? (d.stretch === 100 ? "내장 비트맵 원본" : "내장 비트맵 너비 변형") : "외곽선 흑백 렌더링"} · 너비 ${d.stretch}% · 출력 ${d.width} × ${d.height}px`;
+          `${d.font} · ${d.size}px · ${t(d.bitmap ? (d.stretch === 100 ? "내장 비트맵 원본" : "내장 비트맵 너비 변형") : "외곽선 흑백 렌더링")} · ${t("너비")} ${d.stretch}% · ${t("출력")} ${d.width} × ${d.height}px`;
         disabled(false);
       } catch (e) {
         if (seq !== revision) return;
         $("preview").removeAttribute("src");
         $("status").className = "error";
-        $("status").textContent = e.message;
+        $("status").textContent = translateMessage(e.message);
       }
     }
     function schedule() {
@@ -689,7 +843,7 @@
       }
     }
     function toast(s) {
-      $("toast").textContent = s;
+      $("toast").textContent = translateMessage(s);
     }
     function blob(kind) {
       return kind === "svg"
@@ -762,7 +916,10 @@
         fonts.push(...d);
         d.forEach((f) =>
           $("font").add(
-            new Option(f.name + (f.sizes.length ? " · 비트맵 있음" : ""), f.id),
+            new Option(
+              f.name + (f.sizes.length ? t(" · 비트맵 있음") : ""),
+              f.id,
+            ),
           ),
         );
         $("font").value = d[0].id;
@@ -773,7 +930,9 @@
       }
     };
     function updateCount() {
-      $("count").textContent = Array.from($("text").value).length + "자";
+      $("count").textContent =
+        Array.from($("text").value).length +
+        (language === "en" ? " characters" : "자");
     }
     function persist() {
       try {
@@ -790,7 +949,7 @@
     for (const id of [...fields, "zoom"])
       if (id !== "font" && id !== "size" && saved[id] !== undefined)
         $(id).value = saved[id];
-    updateCount();
+    applyLanguage();
     disabled(true);
     fetch("/api/fonts")
       .then((r) => r.json())
@@ -798,7 +957,10 @@
         fonts = d;
         d.forEach((f) =>
           $("font").add(
-            new Option(f.name + (f.sizes.length ? " · 비트맵 있음" : ""), f.id),
+            new Option(
+              f.name + (f.sizes.length ? t(" · 비트맵 있음") : ""),
+              f.id,
+            ),
           ),
         );
         if (
@@ -817,7 +979,7 @@
         }
       })
       .catch((e) => {
-        $("status").textContent = e.message;
+        $("status").textContent = translateMessage(e.message);
       });
   </script>
 </html>

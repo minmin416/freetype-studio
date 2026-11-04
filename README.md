@@ -2,11 +2,13 @@
 
 # FreeType Studio
 
-**작은 글씨의 픽셀까지, 그대로.**
+**The tiny bitmap Gulim I wanted on my Mac.**
 
-A local bitmap type playground for macOS.
+A local text editor for embedded bitmap fonts, with PNG and SVG clipboard export.
 
-[시작하기](#시작하기) · [기능](#기능) · [사용법](#사용법) · [제약 사항](#알아두기)
+**English** · [한국어](README.ko.md)
+
+[Quick start](#quick-start) · [Why this exists](#why-this-exists) · [Using the editor](#using-the-editor) · [Related tools](#related-tools)
 
 ![macOS](https://img.shields.io/badge/macOS-local_app-111827?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square)
@@ -14,26 +16,36 @@ A local bitmap type playground for macOS.
 
 </div>
 
-![FreeType Studio에서 굴림의 내장 비트맵을 편집하는 실제 화면](docs/images/demo.png)
+![FreeType Studio displaying the embedded 12px Gulim bitmap, with English controls](docs/images/demo-en.png)
 
-굴림의 작은 글씨에는 그 크기를 위해 따로 그려진 비트맵이 들어 있습니다. FreeType Studio는 글꼴 파일 속 비트맵을 직접 읽어, macOS에서도 그 픽셀을 조절하고 꺼내 쓸 수 있게 만든 작은 도구입니다.
+## Why this exists
 
-입력하고, 간격을 맞추고, PNG나 SVG로 복사하세요. 모든 처리는 내 컴퓨터에서 이루어집니다.
+I wanted to use **Gulim's tiny, pixel-sharp bitmap text on my Mac**. The bitmap was already inside the font file. Getting those exact pixels into a design was the frustrating part.
 
-## 기능
+Gulim is a Korean typeface that can contain separate bitmap drawings for particular small sizes, alongside its scalable outlines. Installing the font and selecting a small text size in a Mac app does not give you an explicit control for choosing those embedded bitmaps. The workflow I wanted was simple: **choose the real bitmap size, type some text, adjust the spacing, and paste the result into a design.**
 
-|                 |                                                                 |
-| :-------------- | :-------------------------------------------------------------- |
-| **내장 비트맵** | 글꼴에 들어 있는 실제 비트맵 크기를 선택하고 원본 픽셀로 렌더링 |
-| **간단한 편집** | 서체, 크기, 자간, 줄 간격, 색상과 글자 너비 조절                |
-| **복사와 저장** | PNG 이미지와 SVG 도형을 클립보드로 복사하거나 파일로 저장       |
-| **픽셀 확대**   | 정수 배율 확대와 투명 배경 지원                                 |
-| **로컬 글꼴**   | 설치된 글꼴 검색, TTF·TTC·OTF 등 글꼴 파일 직접 열기            |
-| **입력 유지**   | 새로고침해도 입력 내용과 설정 복원                              |
+FreeType already provides the bitmap-loading functionality. FreeType Studio puts a small, familiar interface around it. It reads the embedded bitmap directly and exports the result as PNG or pixel-shaped SVG artwork.
 
-## 시작하기
+This is a tool for making artwork on a Mac. It does **not** change how other macOS apps render text, and it does not claim that macOS is incapable of displaying every kind of bitmap font.
 
-**macOS · Python 3.9 이상**이 필요합니다. SVG 클립보드 복사에는 Swift가 포함된 **Xcode Command Line Tools**가 필요합니다.
+## Quick start
+
+### 1. Check the requirements
+
+- **macOS** and **Python 3.9 or newer**.
+- **Git** to clone the repository. Alternatively, use GitHub's **Code → Download ZIP** and extract it.
+- **Xcode Command Line Tools**, including Swift, for SVG clipboard copying. PNG copying and file exports do not use Swift.
+- A font you are allowed to use. **No commercial font files are bundled.**
+
+If Git, Python or Swift is missing, open Terminal and run:
+
+```sh
+xcode-select --install
+```
+
+Follow Apple's installer. If you still need Python, install a macOS version from [python.org](https://www.python.org/downloads/macos/).
+
+### 2. Install and launch
 
 ```sh
 git clone https://github.com/minmin416/freetype-studio.git
@@ -42,72 +54,90 @@ cd freetype-studio
 ./Start.command
 ```
 
-브라우저에서 **[127.0.0.1:8791](http://127.0.0.1:8791)** 이 열립니다. 이후에는 `Start.command`를 더블클릭하면 됩니다. 이 도구는 로컬 서버로 실행되며, 별도의 계정이나 API 키가 필요하지 않습니다.
+If you downloaded the ZIP, open Terminal in the extracted folder and run `./Setup.command`, then `./Start.command`.
 
-<details>
-<summary>Python 또는 Swift가 없다고 나올 때</summary>
+Your browser opens **[http://127.0.0.1:8791](http://127.0.0.1:8791)**. No account, API key or frontend build step is needed. The setup script creates a local Python virtual environment and installs the dependencies.
 
-터미널에서 아래 명령으로 Apple의 개발 도구 설치 화면을 열 수 있습니다.
+For later launches, double-click **Start.command** in Finder. Keep the project folder in place. To stop the server, find the process listening on port 8791 with `lsof -nP -iTCP:8791 -sTCP:LISTEN` and stop that process in Terminal or Activity Monitor; closing the browser tab leaves the server running.
 
-```sh
-xcode-select --install
-```
+**The interface supports English and Korean.** It follows your browser language on first use; use the language menu at the top right to switch. Your choice is remembered.
 
-설치한 뒤 `./Setup.command`를 다시 실행하세요. Python이 별도로 필요하면 [python.org](https://www.python.org/downloads/macos/)에서 macOS용 Python을 설치할 수 있습니다.
+### 3. Open a font
 
-</details>
+If Microsoft Word is installed, the app first checks its resources for `gulim.ttc` and `batang.ttc`. It also searches your user font directory and selected macOS font directories.
 
-### 굴림 글꼴 준비
+Otherwise, expand **More settings → Open a font file** and choose a local TTF, TTC, OTF or supported bitmap font. Fonts with embedded bitmap sizes are marked **bitmap available**. Select one and leave **Rendering** set to **Embedded bitmap**.
 
-Microsoft Word가 설치되어 있으면 앱 안의 `gulim.ttc`와 `batang.ttc`를 우선 검색합니다. 사용자 글꼴 폴더와 macOS의 일부 시스템 글꼴 폴더도 읽습니다.
+The local Gulim file used for testing contains **11–25px** bitmap sizes. Other font versions may contain different sizes, or no bitmaps at all. A font that looks pixelated is not necessarily a font with embedded bitmap data.
 
-목록에 원하는 글꼴이 없다면 **추가 설정 → 글꼴 파일 열기**에서 직접 추가하세요. 내장 비트맵이 있는 글꼴은 목록에 표시됩니다. Word에 포함된 로컬 굴림 파일에서 **11~25px** 비트맵을 확인했으며, 다른 버전의 글꼴은 제공하는 크기가 다를 수 있습니다.
+For a quick check without Gulim, open [`tests/fixtures/tiny.bdf`](tests/fixtures/tiny.bdf), the project's own minimal bitmap font, and type **AB AB**. This fixture only contains `A`, `B` and a space.
 
-**이 저장소에는 글꼴 파일을 포함하지 않습니다.** 사용할 권한이 있는 글꼴을 준비해주세요.
+## Features
 
-## 사용법
+|                                  |                                                                                 |
+| :------------------------------- | :------------------------------------------------------------------------------ |
+| **Actual embedded bitmaps**      | Select the bitmap sizes stored inside the font, with no silent outline fallback |
+| **Simple text controls**         | Font, size, tracking, extra line gap, color and horizontal width                |
+| **Copy or save**                 | PNG images and SVG pixel shapes, on the clipboard or as files                   |
+| **Pixel-preserving enlargement** | Integer export scales and a transparent background                              |
+| **Local fonts**                  | Discover installed fonts or open a font file directly                           |
+| **Remembered input**             | Restore your text and settings after a page reload                              |
 
-1. 서체를 고르고 입력창에 글을 씁니다.
-2. 크기·자간 옆의 **− / +** 버튼으로 조절합니다. 숫자 입력란은 직접 수정할 수도 있습니다.
-3. 아래 미리보기에서 실제 출력 결과를 확인합니다.
-4. **PNG 복사 / SVG 복사**를 누르고 원하는 앱에 붙여넣습니다. 파일이 필요하면 **저장**을 누릅니다.
+## Using the editor
 
-### 크기와 배율
+1. Select a font and type in the large text field.
+2. Use **− / +** next to **Size**, **Tracking** and **Width**. Numeric fields also accept direct input.
+3. Check **Output preview**, which shows the actual rendered result.
+4. Click **Copy PNG** or **Copy SVG**, then paste into another app. Use **Save PNG / Save SVG** when you need a file.
 
-| 설정              | 바뀌는 것                                                         |
-| :---------------- | :---------------------------------------------------------------- |
-| **크기 · px**     | 글꼴에서 사용할 비트맵 크기. 내장된 크기만 선택 가능              |
-| **글자 너비 · %** | 가로 비율. 100%가 원본이며, 다른 값은 픽셀을 가로로 늘리거나 줄임 |
-| **출력 배율**     | 복사·저장되는 이미지의 크기. 픽셀 경계를 유지하는 정수 배율       |
-| **화면 확대**     | 미리보기 배율. 복사·저장 크기에는 영향 없음                       |
+### Size, width and scale
 
-너비 변형은 획의 모양을 바꿀 수 있습니다. 원본 비트맵을 그대로 사용하려면 **글자 너비 100%, 출력 배율 1×**로 두세요.
+| Setting           | What it changes                                                                       |
+| :---------------- | :------------------------------------------------------------------------------------ |
+| **Size · px**     | The bitmap strike to load. Embedded bitmap mode only offers sizes present in the font |
+| **Tracking · px** | Additional space between characters                                                   |
+| **Line gap · px** | Extra space between lines                                                             |
+| **Width · %**     | Horizontal compression or stretching. **100%** preserves the original width           |
+| **Export scale**  | The size of copied and saved output, enlarged by an integer factor                    |
+| **Preview zoom**  | Onscreen magnification only; it does not change export size                           |
 
-### SVG는 어떻게 나오나요?
+Width adjustments can change the strokes. For the original bitmap at its original pixel size, use **Width 100%** and **Export scale 1×**. You can enlarge the preview independently.
 
-SVG는 글꼴 파일이나 편집 가능한 텍스트를 포함하지 않고, **각 픽셀을 벡터 도형으로 저장**합니다. 다른 컴퓨터에 같은 글꼴이 없어도 모양이 유지됩니다.
+### How SVG export works
 
-SVG 복사는 macOS 클립보드에 SVG 이미지와 SVG 원문을 함께 넣습니다. 붙여넣는 앱의 지원 방식에 따라 이미지 또는 코드로 붙을 수 있습니다. 파일 가져오기가 필요한 앱에서는 **SVG 저장**을 사용하세요.
+SVG stores the pixels as **vector rectangles**, rather than editable text or embedded font data. The receiving computer does not need the original font to display the artwork.
 
-## 알아두기
+SVG copying places both an SVG image and SVG source text on the macOS clipboard. Depending on the receiving app, pasting may insert artwork or source code. If an app expects a file import, use **Save SVG** instead. PNG copying places a PNG image on the clipboard.
 
-- **macOS용 로컬 도구**입니다. 호스팅 서비스나 범용 글꼴 편집기는 아닙니다.
-- 글꼴에 해당 크기의 비트맵이나 입력한 글자가 없으면 오류를 표시합니다. 내장 비트맵 모드에서 외곽선으로 자동 대체하지 않습니다.
-- 내장 비트맵이 없는 글꼴은 추가 설정의 **외곽선 → 흑백 픽셀** 모드로 사용할 수 있습니다. 이 결과는 내장 비트맵과 구분됩니다.
-- 복잡한 문자 조합, 양방향 텍스트와 전문적인 조판은 지원하지 않습니다.
-- 입력 내용과 설정은 브라우저의 로컬 저장소에 남습니다. 직접 추가한 글꼴은 프로젝트의 `fonts/` 폴더에 저장됩니다.
-- PNG·SVG 복사와 파일 저장은 로컬 macOS에서 확인했습니다. 디자인 앱별 붙여넣기 호환성은 다를 수 있습니다.
+## Limitations and local storage
 
-## 개발
+- This is a **macOS local tool**, not a hosted service or a font editor.
+- Missing bitmap sizes or characters produce an error. Embedded bitmap mode does not quietly substitute outlines.
+- Fonts without embedded bitmaps can use **More settings → Rendering → Outline → monochrome pixels**. This is explicitly identified as outline rendering.
+- Complex-script shaping, bidirectional text and professional typesetting are not supported.
+- Input and settings are stored in your browser's local storage. Fonts you open are copied to the project's local `fonts/` folder. They are not uploaded to an external service.
+- Clipboard behavior varies between receiving apps. PNG/SVG copy and download paths have been checked locally on macOS; app-by-app paste compatibility is not guaranteed.
 
-서버는 Python 표준 라이브러리의 HTTP 서버와 [freetype-py](https://github.com/rougier/freetype-py), [Pillow](https://python-pillow.org/)를 사용합니다. 화면은 HTML·CSS·JavaScript이며 빌드 과정이 없습니다. SVG 클립보드 처리는 작은 Swift 스크립트가 담당합니다.
+## Related tools
+
+Embedded bitmap extraction already exists. This project's focus is a short **type → adjust → copy artwork** workflow, built on FreeType.
+
+- **[FreeType](https://freetype.org/freetype2/docs/reference/ft2-glyph_retrieval.html)** provides the embedded-bitmap loading used here through [freetype-py](https://github.com/rougier/freetype-py).
+- **[monobit](https://github.com/robhagemans/monobit)** is a bitmap-font toolkit that supports extracting embedded bitmaps from TrueType/OpenType fonts and font collections, along with rendering and format conversion.
+- **[FontForge](https://fontforge.org/docs/ui/menus/filemenu.html)** can load embedded bitmap strikes for editing. Its [scripting API](https://fontforge.org/docs/scripting/scripting-alpha.html#Export) can export bitmap glyphs as PNG.
+
+Those tools may fit better if you want font conversion, extraction pipelines or glyph editing. FreeType Studio is a small interface for composing a piece of text and copying it as an image or SVG.
+
+## Development
+
+The backend uses Python's standard HTTP server, [freetype-py](https://github.com/rougier/freetype-py) and [Pillow](https://python-pillow.org/). The interface is plain HTML, CSS and JavaScript. A small Swift script handles SVG clipboard copying.
 
 ```sh
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-문제나 개선 아이디어는 [Issues](https://github.com/minmin416/freetype-studio/issues)에 남겨주세요. 재현할 때 사용한 글꼴 이름·크기·입력 문자를 함께 적어주시면 도움이 됩니다. 배포 권한이 없는 글꼴 파일은 첨부하지 말아주세요.
+Report bugs or ideas through [Issues](https://github.com/minmin416/freetype-studio/issues). Include your font name, selected size and a short sample of the text that triggers the problem. Please do not attach font files you do not have permission to distribute.
 
-## 라이선스
+## License
 
-코드는 [MIT License](LICENSE)로 배포합니다. FreeType·freetype-py·Pillow와 사용하는 글꼴은 각자의 라이선스를 따릅니다. 이 프로젝트는 FreeType 프로젝트와 별개로 만든 도구입니다.
+The code is released under the [MIT License](LICENSE). FreeType, freetype-py, Pillow and any fonts you use retain their own licenses. This is an independent project, not an official FreeType application.
