@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="ko">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>FreeType Studio</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    [hidden] {
+      display: none !important;
+    }
+    body {
+      margin: 0;
+      background: #f5f5f7;
+      color: #202124;
+      font:
+        14px -apple-system,
+        BlinkMacSystemFont,
+        "Apple SD Gothic Neo",
+        sans-serif;
+    }
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+      color: inherit;
+    }
+    button,
+    select,
+    input {
+      border: 1px solid #d9dce1;
+      border-radius: 6px;
+      background: #fff;
+      min-height: 34px;
+    }
+    button {
+      padding: 7px 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button:hover {
+      background: #f0f1f3;
+    }
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+    button.primary {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+    button.primary:hover {
+      background: #1d4ed8;
+    }
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+    select {
+      padding: 6px 25px 6px 9px;
+      max-width: 100%;
+    }
+    input[type="number"] {
+      width: 66px;
+      padding: 6px 8px;
+    }
+    input[type="color"] {
+      width: 36px;
+      padding: 3px;
+    }
+    header {
+      min-height: 64px;
+      padding: 14px 24px;
+      background: #fff;
+      border-bottom: 1px solid #e1e3e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    h1 {
+      font-size: 17px;
+      margin: 0;
+      letter-spacing: -0.4px;
+    }
+    h1 span {
+      font-size: 12px;
+      font-weight: 400;
+      color: #7c818a;
+      margin-left: 10px;
+    }
+    .actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+    .separator {
+      width: 1px;
+      background: #ddd;
+      margin: 3px 4px;
+    }
+    .workspace {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 24px;
+    }
+    .editor {
+      background: #fff;
+      border: 1px solid #dfe2e7;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px #00000004;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 13px 16px;
+      border-bottom: 1px solid #e6e8eb;
+      background: #fcfcfd;
+    }
+    label.control {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: #60656e;
+      white-space: nowrap;
+    }
+    .font-control {
+      flex: 1;
+      min-width: 210px;
+    }
+    .font-control select {
+      width: 100%;
+      max-width: 300px;
+      color: #222;
+    }
+    #size {
+      width: 82px;
+    }
+    #text {
+      display: block;
+      width: 100%;
+      height: 210px;
+      min-height: 150px;
+      resize: vertical;
+      border: 0;
+      outline: 0;
+      background: #fff;
+      padding: 24px;
+      font:
+        18px/1.8 -apple-system,
+        BlinkMacSystemFont,
+        "Apple SD Gothic Neo",
+        sans-serif;
+      tab-size: 4;
+    }
+    #text:focus {
+      box-shadow: inset 3px 0 #2563eb;
+    }
+    #text::placeholder {
+      color: #a5a9b0;
+    }
+    .input-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 16px;
+      border-top: 1px solid #f0f1f3;
+      font-size: 11px;
+      color: #8b9099;
+    }
+    kbd {
+      font: inherit;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      padding: 1px 4px;
+      background: #fafafa;
+    }
+    .preview-card {
+      margin-top: 18px;
+      background: #fff;
+      border: 1px solid #dfe2e7;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .preview-toolbar {
+      padding: 11px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #e6e8eb;
+    }
+    .preview-toolbar h2 {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0;
+    }
+    .stage {
+      overflow: auto;
+      min-height: 200px;
+      max-height: 480px;
+      display: flex;
+      align-items: safe center;
+      justify-content: safe center;
+      padding: 28px;
+      background-color: #fff;
+      background-image:
+        linear-gradient(45deg, #f1f2f4 25%, transparent 25%),
+        linear-gradient(-45deg, #f1f2f4 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #f1f2f4 75%),
+        linear-gradient(-45deg, transparent 75%, #f1f2f4 75%);
+      background-size: 16px 16px;
+      background-position:
+        0 0,
+        0 8px,
+        8px -8px,
+        -8px 0;
+    }
+    #preview {
+      image-rendering: pixelated;
+      max-width: none;
+      flex-shrink: 0;
+    }
+    #status {
+      padding: 10px 16px;
+      font-size: 12px;
+      color: #69707c;
+      border-top: 1px solid #e6e8eb;
+      line-height: 1.5;
+    }
+    #status.error {
+      color: #bc3025;
+    }
+    details {
+      margin-top: 18px;
+      border: 1px solid #dfe2e7;
+      border-radius: 8px;
+      background: #fff;
+    }
+    summary {
+      cursor: pointer;
+      padding: 13px 16px;
+      font-size: 12px;
+      color: #646b76;
+    }
+    .settings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      padding: 8px 16px 16px;
+    }
+    .note {
+      font-size: 12px;
+      color: #9297a0;
+      line-height: 1.7;
+      margin: 0;
+      padding: 0 16px 16px;
+    }
+    #toast {
+      font-size: 12px;
+      color: #25613b;
+      min-height: 23px;
+      margin: 12px 1px 0;
+    }
+    .upload {
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #d9dce1;
+      border-radius: 6px;
+      padding: 7px 11px;
+      background: #fff;
+      color: #444;
+    }
+    #zoom {
+      min-height: 28px;
+      font-size: 12px;
+    }
+    #mode {
+      max-width: 215px;
+    }
+    @media (max-width: 700px) {
+      header {
+        padding: 12px 16px;
+      }
+      h1 span {
+        display: none;
+      }
+      .workspace {
+        margin: 16px auto;
+        padding: 0 12px;
+      }
+      .toolbar {
+        gap: 10px;
+      }
+      .font-control {
+        flex-basis: 100%;
+      }
+      .font-control select {
+        max-width: none;
+      }
+      .actions button {
+        font-size: 12px;
+        padding: 7px 9px;
+      }
+      #text {
+        height: 190px;
+        padding: 18px;
+      }
+      .stage {
+        padding: 18px;
+        min-height: 180px;
+      }
+      .settings {
+        gap: 13px;
+      }
+    }
+    .stepper {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #d9dce1;
+      border-radius: 6px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .stepper button {
+      border: 0;
+      border-radius: 0;
+      min-height: 32px;
+      width: 29px;
+      padding: 0;
+      font-size: 18px;
+      background: #f7f8fa;
+      color: #454d59;
+    }
+    .stepper input,
+    .stepper select {
+      border: 0;
+      border-radius: 0;
+      min-height: 32px;
+      text-align: center;
+    }
+    .stepper input[type="number"] {
+      width: 53px;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+    .stepper input::-webkit-inner-spin-button,
+    .stepper input::-webkit-outer-spin-button {
+      appearance: none;
+      margin: 0;
+    }
+    .stepper #size {
+      width: 60px;
+      padding-left: 5px;
+      padding-right: 16px;
+    }
+    .font-control {
+      flex-basis: 100%;
+    }
+    .font-control select {
+      max-width: 360px;
+    }
+  </style>
+  <header>
+    <h1>FreeType Studio<span>비트맵 글씨 입력기</span></h1>
+    <div class="actions">
+      <button class="primary action" id="copyPng">PNG 복사</button
+      ><button class="action" id="copySvg">SVG 복사</button
+      ><span class="separator"></span
+      ><button class="action" id="savePng">PNG 저장</button
+      ><button class="action" id="saveSvg">SVG 저장</button>
+    </div>
+  </header>
+  <main class="workspace">
+    <div class="editor">
+      <div class="toolbar" aria-label="글자 설정">
+        <label class="control font-control"
+          >서체<select id="font" aria-label="서체"></select
+        ></label>
+        <label class="control"
+          >크기<span class="stepper"
+            ><button
+              type="button"
+              data-for="size"
+              data-delta="-1"
+              aria-label="크기 줄이기"
+            >
+              −</button
+            ><select id="size" aria-label="글자 크기"></select
+            ><button
+              type="button"
+              data-for="size"
+              data-delta="1"
+              aria-label="크기 늘리기"
+            >
+              +
+            </button></span
+          ><span>px</span></label
+        >
+        <label class="control"
+          >자간<span class="stepper"
+            ><button
+              type="button"
+              data-for="tracking"
+              data-delta="-1"
+              aria-label="자간 줄이기"
+            >
+              −</button
+            ><input
+              id="tracking"
+              aria-label="자간"
+              type="number"
+              min="-20"
+              max="100"
+              value="0"
+            /><button
+              type="button"
+              data-for="tracking"
+              data-delta="1"
+              aria-label="자간 늘리기"
+            >
+              +
+            </button></span
+          ></label
+        >
+        <label class="control"
+          >글자 너비<span class="stepper"
+            ><button
+              type="button"
+              data-for="stretch"
+              data-delta="-5"
+              aria-label="너비 줄이기"
+            >
+              −</button
+            ><input
+              id="stretch"
+              aria-label="글자 너비"
+              type="number"
+              min="25"
+              max="300"
+              step="5"
+              value="100"
+            /><button
+              type="button"
+              data-for="stretch"
+              data-delta="5"
+              aria-label="너비 늘리기"
+            >
+              +
+            </button></span
+          ><span>%</span></label
+        >
+        <label class="control"
+          >줄 간격<input
+            id="leading"
+            aria-label="줄 간격 추가"
+            type="number"
+            min="0"
+            max="100"
+            value="4"
+        /></label>
+        <label class="control" title="글자색"
+          ><input id="color" aria-label="글자색" type="color" value="#111111"
+        /></label>
+      </div>
+      <textarea
+        id="text"
+        aria-label="내용 입력"
+        spellcheck="false"
+        placeholder="여기에 글자를 입력하세요."
+      >
+안녕하세요. 굴림체입니다.
+작은 글씨의 선명한 픽셀.
+가나다라마바사 0123456789</textarea
+      >
+      <div class="input-footer">
+        <span>입력하면 아래에 바로 반영됩니다.</span><span id="count"></span>
+      </div>
+    </div>
+    <div class="preview-card">
+      <div class="preview-toolbar">
+        <h2>출력 미리보기</h2>
+        <label class="control"
+          >화면 확대<select id="zoom">
+            <option value="1">100%</option>
+            <option value="2" selected>200%</option>
+            <option value="4">400%</option>
+            <option value="8">800%</option>
+          </select></label
+        >
+      </div>
+      <div class="stage">
+        <img id="preview" alt="입력한 글씨의 실제 출력 미리보기" />
+      </div>
+      <div id="status" role="status">글꼴을 불러오는 중…</div>
+    </div>
+    <details>
+      <summary>추가 설정 · 글꼴 파일 열기</summary>
+      <div class="settings">
+        <label class="control"
+          >렌더링<select id="mode">
+            <option value="bitmap">내장 비트맵 원본</option>
+            <option value="outline">외곽선 → 흑백 픽셀</option>
+          </select></label
+        >
+        <label class="control"
+          >출력 배율<select id="scale">
+            <option value="1">1× 원본</option>
+            <option value="2">2×</option>
+            <option value="3">3×</option>
+            <option value="4">4×</option>
+            <option value="8">8×</option>
+            <option value="16">16×</option>
+          </select></label
+        >
+        <label class="control"
+          >여백<input
+            id="padding"
+            type="number"
+            min="0"
+            max="200"
+            value="8"
+          /><span>px</span></label
+        >
+        <label class="control"
+          >배경<select id="background">
+            <option value="transparent">투명</option>
+            <option value="white">흰색</option>
+          </select></label
+        >
+        <label class="upload"
+          >＋ 글꼴 파일 열기<input
+            id="upload"
+            type="file"
+            accept=".ttf,.ttc,.otf,.otb,.bdf,.pcf"
+            hidden
+        /></label>
+      </div>
+      <p class="note">
+        내장 비트맵은 글꼴에 들어 있는 크기만 지원합니다. 글자 너비 100%가
+        원본이며, 다른 값은 픽셀을 가로로 늘리거나 줄입니다. 화면 확대는 저장
+        크기에 영향을 주지 않습니다. SVG는 픽셀을 도형으로 저장하며, 붙여넣는
+        앱에 따라 이미지 또는 코드로 붙습니다.
+      </p>
+    </details>
+    <div id="toast" role="status"></div>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let fonts = [],
+      result = null,
+      revision = 0,
+      timer;
+    const fields = [
+      "font",
+      "mode",
+      "size",
+      "scale",
+      "tracking",
+      "stretch",
+      "leading",
+      "padding",
+      "color",
+      "background",
+      "text",
+    ];
+    function values() {
+      return Object.fromEntries(fields.map((id) => [id, $(id).value]));
+    }
+    function disabled(b) {
+      document.querySelectorAll(".action").forEach((x) => (x.disabled = b));
+    }
+    function updateSteppers() {
+      document.querySelectorAll("[data-for]").forEach((b) => {
+        const el = $(b.dataset.for),
+          delta = +b.dataset.delta;
+        b.disabled =
+          el.disabled ||
+          (el.tagName === "SELECT"
+            ? delta < 0
+              ? el.selectedIndex <= 0
+              : el.selectedIndex >= el.options.length - 1
+            : delta < 0
+              ? +el.value <= +el.min
+              : +el.value >= +el.max);
+      });
+    }
+    document.querySelectorAll("[data-for]").forEach(
+      (b) =>
+        (b.onclick = () => {
+          const el = $(b.dataset.for),
+            delta = +b.dataset.delta;
+          if (el.disabled) return;
+          if (el.tagName === "SELECT") {
+            el.selectedIndex = Math.max(
+              0,
+              Math.min(el.options.length - 1, el.selectedIndex + delta),
+            );
+          } else {
+            el.value = Math.max(
+              +el.min,
+              Math.min(+el.max, (Number(el.value) || 0) + delta),
+            );
+          }
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+          updateSteppers();
+        }),
+    );
+    function sizes() {
+      let f = fonts.find((f) => String(f.id) === $("font").value);
+      let old = +$("size").value || 12;
+      const bitmap = $("mode").value === "bitmap";
+      let list = !f
+        ? []
+        : bitmap
+          ? f.sizes
+          : Array.from({ length: 160 }, (_, i) => i + 1);
+      $("size").replaceChildren(...list.map((n) => new Option(n, n)));
+      if (list.includes(old)) $("size").value = old;
+      $("size").disabled = !list.length;
+      updateSteppers();
+      if (!list.length) {
+        result = null;
+        disabled(true);
+        $("status").className = "error";
+        $("status").textContent = f
+          ? "이 서체에는 내장 비트맵이 없습니다. 다른 서체를 선택하거나 외곽선 모드로 전환하세요."
+          : "글꼴을 찾지 못했습니다. 추가 설정에서 글꼴 파일을 열어주세요.";
+        return false;
+      }
+      return true;
+    }
+    async function render() {
+      let seq = ++revision;
+      result = null;
+      disabled(true);
+      try {
+        const r = await fetch("/api/render", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values()),
+        });
+        const d = await r.json();
+        if (seq !== revision) return;
+        if (!r.ok) throw Error(d.error);
+        result = d;
+        $("preview").src = "data:image/png;base64," + d.png;
+        zoom();
+        $("status").className = "";
+        $("status").textContent =
+          `${d.font} · ${d.size}px · ${d.bitmap ? (d.stretch === 100 ? "내장 비트맵 원본" : "내장 비트맵 너비 변형") : "외곽선 흑백 렌더링"} · 너비 ${d.stretch}% · 출력 ${d.width} × ${d.height}px`;
+        disabled(false);
+      } catch (e) {
+        if (seq !== revision) return;
+        $("preview").removeAttribute("src");
+        $("status").className = "error";
+        $("status").textContent = e.message;
+      }
+    }
+    function schedule() {
+      updateSteppers();
+      persist();
+      updateCount();
+      ++revision;
+      result = null;
+      disabled(true);
+      clearTimeout(timer);
+      timer = setTimeout(render, 180);
+    }
+    function zoom() {
+      persist();
+      if (result) {
+        $("preview").style.width = result.width * +$("zoom").value + "px";
+        $("preview").style.height = result.height * +$("zoom").value + "px";
+      }
+    }
+    function toast(s) {
+      $("toast").textContent = s;
+    }
+    function blob(kind) {
+      return kind === "svg"
+        ? new Blob([result.svg], { type: "image/svg+xml" })
+        : fetch("data:image/png;base64," + result.png).then((r) => r.blob());
+    }
+    async function save(kind) {
+      if (!result) return;
+      const url = URL.createObjectURL(await blob(kind)),
+        a = document.createElement("a");
+      a.href = url;
+      a.download = "freetype-" + result.size + "px." + kind;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast(kind.toUpperCase() + " 파일을 저장했습니다.");
+    }
+    $("copyPng").onclick = async () => {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob("png") }),
+        ]);
+        toast("PNG 이미지를 복사했습니다. ⌘V로 붙여넣으세요.");
+      } catch (e) {
+        toast("PNG 복사 실패: " + e.message);
+      }
+    };
+    $("copySvg").onclick = async () => {
+      if (!result) return;
+      const button = $("copySvg");
+      button.disabled = true;
+      toast("SVG를 복사하는 중…");
+      try {
+        const r = await fetch("/api/copy-svg", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values()),
+        });
+        const d = await r.json();
+        if (!r.ok) throw Error(d.error);
+        toast("SVG를 복사했습니다. ⌘V로 붙여넣으세요.");
+      } catch (e) {
+        toast(e.message);
+      } finally {
+        button.disabled = !result;
+      }
+    };
+    $("savePng").onclick = () => save("png");
+    $("saveSvg").onclick = () => save("svg");
+    $("zoom").onchange = zoom;
+    fields.forEach((id) =>
+      $(id).addEventListener("input", () => {
+        if (id === "font" || id === "mode") {
+          ++revision;
+          clearTimeout(timer);
+          if (!sizes()) {
+            $("preview").removeAttribute("src");
+            return;
+          }
+        }
+        schedule();
+      }),
+    );
+    $("upload").onchange = async () => {
+      const file = $("upload").files[0];
+      if (!file) return;
+      try {
+        const r = await fetch("/api/upload", { method: "POST", body: file });
+        const d = await r.json();
+        if (!r.ok) throw Error(d.error);
+        fonts.push(...d);
+        d.forEach((f) =>
+          $("font").add(
+            new Option(f.name + (f.sizes.length ? " · 비트맵 있음" : ""), f.id),
+          ),
+        );
+        $("font").value = d[0].id;
+        if (sizes()) render();
+        toast("글꼴을 추가했습니다.");
+      } catch (e) {
+        toast(e.message);
+      }
+    };
+    function updateCount() {
+      $("count").textContent = Array.from($("text").value).length + "자";
+    }
+    function persist() {
+      try {
+        localStorage.setItem(
+          "freetype-editor",
+          JSON.stringify({ ...values(), zoom: $("zoom").value }),
+        );
+      } catch (e) {}
+    }
+    let saved = {};
+    try {
+      saved = JSON.parse(localStorage.getItem("freetype-editor") || "{}");
+    } catch (e) {}
+    for (const id of [...fields, "zoom"])
+      if (id !== "font" && id !== "size" && saved[id] !== undefined)
+        $(id).value = saved[id];
+    updateCount();
+    disabled(true);
+    fetch("/api/fonts")
+      .then((r) => r.json())
+      .then((d) => {
+        fonts = d;
+        d.forEach((f) =>
+          $("font").add(
+            new Option(f.name + (f.sizes.length ? " · 비트맵 있음" : ""), f.id),
+          ),
+        );
+        if (
+          saved.font !== undefined &&
+          d.some((f) => String(f.id) === String(saved.font))
+        )
+          $("font").value = saved.font;
+        if (sizes()) {
+          if (
+            saved.size &&
+            [...$("size").options].some((o) => o.value === String(saved.size))
+          )
+            $("size").value = saved.size;
+          updateSteppers();
+          render();
+        }
+      })
+      .catch((e) => {
+        $("status").textContent = e.message;
+      });
+  </script>
+</html>
